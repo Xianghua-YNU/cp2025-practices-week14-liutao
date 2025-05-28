@@ -59,6 +59,7 @@ def calculate_energy(state: np.ndarray, omega: float = 1.0) -> float:
 def analyze_limit_cycle(states: np.ndarray, t: np.ndarray) -> Tuple[float, float]:
     """分析极限环特征"""
     x = states[:, 0]
+    t = np.arange(len(x))
     # 振幅：取稳态部分的最大绝对值
     amplitude = np.max(np.abs(x[-1000:])) if len(x) > 1000 else np.max(np.abs(x))
     
