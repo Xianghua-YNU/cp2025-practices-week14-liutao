@@ -31,36 +31,27 @@ def solve_pendulum(l=0.1, g=9.81, C=2, Omega=5, t_span=(0, 100), y0=(0, 0)):
         print(f"求解失败: {str(e)}")
         return None, None
 
-def find_resonance(l=0.1, g=9.81, C=2, Omega_range=None, t_total=200):
-    """寻找共振频率"""
-    # 自动生成频率范围
+def find_resonance(l=0.1, g=9.81, C=2, Omega_range=None, t_span=(0,200), y0=[0,0]):
+    """
+    寻找共振频率
+    返回: Omega_range, amplitudes
+    """
     if Omega_range is None:
-        Omega0 = np.sqrt(g/l)  # 理论自然频率
-        Omega_range = np.linspace(0.4*Omega0, 1.6*Omega0, 50)
+        Omega0 = np.sqrt(g/l)  # 小角度近似下的自然频率
+        Omega_range = np.linspace(Omega0/2, 2*Omega0, 50)
     
     amplitudes = []
-    valid_omegas = []
     
     for Omega in Omega_range:
-        t, theta = solve_pendulum(
-            l=l, g=g, C=C, Omega=Omega,
-            t_span=(0, t_total),
-            y0=(0, 0)
-        )
+        # 求解方程
+        t, theta = solve_pendulum(l, g, C, Omega, t_span, y0)
         
-        if t is None:
-            continue  # 跳过失败情况
-        
-        # 稳态分析：取后1/3数据
-        steady_start = int(2*len(t)/3)
-        steady_theta = theta[steady_start:]
-        
-        if len(steady_theta) > 0:
-            A = np.max(np.abs(steady_theta))
-            amplitudes.append(A)
-            valid_omegas.append(Omega)
+        # 计算稳态振幅(取后半段数据)
+        steady_idx = t > t_span[0] + (t_span[1]-t_span[0])/2
+        amplitude = np.max(np.abs(theta[steady_idx]))
+        amplitudes.append(amplitude)
     
-    return np.array(valid_omegas), np.array(amplitudes)
+    return Omega_range, amplitudes
 
 # ========================
 # 可视化函数
