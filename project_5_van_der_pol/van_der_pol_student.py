@@ -6,7 +6,8 @@ def van_der_pol_ode(t, state, mu=1.0, omega=1.0):
     """van der Pol振子的一阶微分方程组。"""
     x, v = state
     return np.array([v, mu*(1-x**2)*v - omega**2*x])
-    
+
+
 def rk4_step(ode_func: Callable, state: np.ndarray, t: float, dt: float, **kwargs) -> np.ndarray:
     """
     使用四阶龙格-库塔方法进行一步数值积分。
