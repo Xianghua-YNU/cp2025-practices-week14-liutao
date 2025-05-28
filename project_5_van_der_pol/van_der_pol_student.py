@@ -7,7 +7,7 @@ def van_der_pol_ode(state: np.ndarray, t: float, mu: float = 1.0, omega: float =
     x, v = state
     dxdt = v
     dvdt = mu * (1 - x**2) * v - omega**2 * x
-    return np.array([dxdt, dvdt])
+    return [dxdt, dvdt]
 
 def rk4_step(ode_func: Callable, state: np.ndarray, t: float, dt: float, **kwargs) -> np.ndarray:
     """四阶龙格-库塔方法单步积分"""
