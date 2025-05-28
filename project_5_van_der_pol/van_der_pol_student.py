@@ -97,6 +97,7 @@ def main():
     t, states = solve_ode(van_der_pol_ode, **params, mu=1.0)
     plot_time_evolution(t, states, 'Time Evolution (μ=1)')
     plot_phase_space(states, 'Phase Space (μ=1)')
+    
     # 1. 求解van der Pol方程
     # 2. 绘制时间演化图
     print("\nAnalyzing parameter effects...")
@@ -128,8 +129,10 @@ def main():
     plt.title('Energy Evolution (μ=1)')
     plt.grid(True)
     plt.show()
+    
     # 1. 计算和绘制能量随时间的变化
     # 2. 分析能量的耗散和补充
+    
     # 极限环特征分析
     print("\nLimit cycle characteristics:")
     for mu in [1.0, 2.0, 4.0]:
