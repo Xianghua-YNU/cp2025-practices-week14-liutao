@@ -1,5 +1,10 @@
-def van_der_pol_ode(state: np.ndarray, t: float, mu: float = 1.0, omega: float = 1.0) -> np.ndarray:
-    """实现van der Pol振子的一阶微分方程组"""
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
+from typing import Tuple, Callable
+
+def van_der_pol_ode(t: float, state: np.ndarray, mu: float = 1.0, omega: float = 1.0) -> np.ndarray:
+    """van der Pol振子的一阶微分方程组 (solve_ivp兼容版本)"""
     x, v = state
     dxdt = v
     dvdt = mu * (1 - x**2) * v - omega**2 * x
@@ -7,6 +12,7 @@ def van_der_pol_ode(state: np.ndarray, t: float, mu: float = 1.0, omega: float =
 
 def solve_ode(ode_func: Callable, initial_state: np.ndarray, t_span: Tuple[float, float], 
               dt: float, **kwargs) -> Tuple[np.ndarray, np.ndarray]:
+    """使用solve_ivp求解常微分方程"""
     t_eval = np.arange(t_span[0], t_span[1] + dt, dt)
     sol = solve_ivp(
         fun=ode_func,
@@ -66,7 +72,7 @@ def main():
     params = {
         'omega': 1.0,
         't_span': (0, 20),
-        'dt': 0.1,
+        'dt': 0.01,
         'initial_state': np.array([1.0, 0.0])
     }
     
