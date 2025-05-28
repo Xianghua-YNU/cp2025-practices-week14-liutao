@@ -10,20 +10,23 @@ from mpl_toolkits.mplot3d import Axes3D
 from scipy.integrate import solve_ivp
 
 
-def lorenz_system(state, sigma, r, b):
+def lorenz_system(t, state, sigma, r, b):
     """
     定义洛伦兹系统方程
     
     参数:
+        t: 时间变量（solve_ivp要求）
         state: 当前状态向量 [x, y, z]
         sigma, r, b: 系统参数
         
     返回:
         导数向量 [dx/dt, dy/dt, dz/dt]
     """
-    # TODO: 实现洛伦兹系统方程 (约3行代码)
-    # [STUDENT_CODE_HERE]
-    raise NotImplementedError("请实现此函数")
+    x, y, z = state
+    dxdt = sigma * (y - x)
+    dydt = r * x - y - x * z
+    dzdt = x * y - b * z
+    return [dxdt, dydt, dzdt]
 
 
 def solve_lorenz_equations(sigma=10.0, r=28.0, b=8/3,
@@ -36,27 +39,54 @@ def solve_lorenz_equations(sigma=10.0, r=28.0, b=8/3,
         t: 时间点数组
         y: 解数组，形状为(3, n_points)
     """
-    # TODO: 使用solve_ivp求解洛伦兹方程 (约3行代码)
-    # [STUDENT_CODE_HERE]
-    raise NotImplementedError("请实现此函数")
+    t_eval = np.linspace(t_span[0], t_span[1], int((t_span[1]-t_span[0])/dt))
+    sol = solve_ivp(lorenz_system, t_span, [x0, y0, z0], 
+                    args=(sigma, r, b), t_eval=t_eval, method='RK45')
+    return sol.t, sol.y
 
 
 def plot_lorenz_attractor(t: np.ndarray, y: np.ndarray):
     """
     绘制洛伦兹吸引子3D图
     """
-    # TODO: 实现3D绘图 (约6行代码)
-    # [STUDENT_CODE_HERE]
-    raise NotImplementedError("请实现此函数")
+    fig = plt.figure(figsize=(10, 8))
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot(y[0], y[1], y[2], lw=0.5)
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    ax.set_title('Lorenz Attractor')
+    plt.show()
 
 
 def compare_initial_conditions(ic1, ic2, t_span=(0, 50), dt=0.01):
     """
     比较不同初始条件的解
     """
-    # TODO: 实现初始条件比较 (约10行代码)
-    # [STUDENT_CODE_HERE]
-    raise NotImplementedError("请实现此函数")
+    # 求解两个初始条件的解
+    t1, y1 = solve_lorenz_equations(x0=ic1[0], y0=ic1[1], z0=ic1[2], t_span=t_span, dt=dt)
+    t2, y2 = solve_lorenz_equations(x0=ic2[0], y0=ic2[1], z0=ic2[2], t_span=t_span, dt=dt)
+    
+    # 绘制x(t)对比图
+    plt.figure(figsize=(12, 6))
+    plt.plot(t1, y1[0], label=f'IC1: {ic1}')
+    plt.plot(t2, y2[0], label=f'IC2: {ic2}')
+    plt.xlabel('Time')
+    plt.ylabel('x(t)')
+    plt.title('Comparison of x(t) with slightly different initial conditions')
+    plt.legend()
+    plt.grid()
+    plt.show()
+    
+    # 计算并绘制相空间距离
+    distance = np.sqrt((y1[0]-y2[0])**2 + (y1[1]-y2[1])**2 + (y1[2]-y2[2])**2)
+    plt.figure(figsize=(12, 6))
+    plt.plot(t1, distance)
+    plt.xlabel('Time')
+    plt.ylabel('Distance in phase space')
+    plt.title('Distance between trajectories with different initial conditions')
+    plt.grid()
+    plt.show()
 
 
 def main():
