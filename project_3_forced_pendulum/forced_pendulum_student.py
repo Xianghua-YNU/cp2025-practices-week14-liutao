@@ -6,7 +6,7 @@ from scipy.integrate import solve_ivp
 # 核心函数实现
 # ========================
 
-def pendulum_ode(t, state, l, g, C, Omega):
+def forced_pendulum_ode(t, state, l, g, C, Omega):
     """受迫单摆运动方程"""
     theta, omega = state
     dtheta_dt = omega
