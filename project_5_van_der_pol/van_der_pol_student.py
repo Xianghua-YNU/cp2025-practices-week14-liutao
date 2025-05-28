@@ -52,19 +52,38 @@ def calculate_energy(state: np.ndarray, omega: float = 1.0) -> float:
     x, v = state
     return 0.5 * v**2 + 0.5 * omega**2 * x**2
 
-def analyze_limit_cycle(states: np.ndarray, t: np.ndarray) -> Tuple[float, float]:
+def analyze_limit_cycle(t: np.ndarray, states: np.ndarray) -> Tuple[float, float]:
     """分析极限环特征"""
     x = states[:, 0]
-    # 振幅：取稳态部分的最大绝对值
-    amplitude = np.max(np.abs(x[-1000:])) if len(x) > 1000 else np.max(np.abs(x))
     
-    # 周期：通过过零点计算
+    # 跳过前40%的瞬态过程（由于总时间较短）
+    skip = int(len(x) * 0.4)
+    if skip < 100:  # 确保至少有100个点用于分析
+        skip = min(100, len(x) - 10)
+    
+    x_steady = x[skip:]
+    t_steady = t[skip:]
+    
+    # 振幅：取稳态部分的最大绝对值
+    amplitude = np.max(np.abs(x_steady))
+    
+    # 检测过零点（从正到负或负到正）
     zero_crossings = np.where(np.diff(np.sign(x)))[0]
-    if len(zero_crossings) > 1:
+    
+    if len(zero_crossings) >= 2:
+        # 使用实际时间计算周期
         periods = np.diff(t[zero_crossings])
-        period = np.mean(periods) * 2  # 两个过零点为一个周期
+        
+        # 只考虑稳态部分的过零点
+        steady_zero_crossings = zero_crossings[zero_crossings > skip]
+        if len(steady_zero_crossings) >= 2:
+            steady_periods = np.diff(t[steady_zero_crossings])
+            period = np.mean(steady_periods) * 2  # 两次过零点为一个完整周期
+        else:
+            period = np.mean(periods) * 2
     else:
         period = np.nan
+    
     return amplitude, period
 
 def main():
