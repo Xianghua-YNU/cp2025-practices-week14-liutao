@@ -1,20 +1,22 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import Tuple, Callable, List
+from typing import Tuple, Callable
 
-def van_der_pol_ode(state: np.ndarray, t: float, mu: 1.0, omega: 1.0) -> np.ndarray:
+# 修正1：调整参数顺序 (t在前，state在后)
+def van_der_pol_ode(t: float, state: np.ndarray, mu: float, omega: float) -> np.ndarray:
     """实现van der Pol振子的一阶微分方程组"""
     x, v = state
     dxdt = v
     dvdt = mu * (1 - x**2) * v - omega**2 * x
     return np.array([dxdt, dvdt])
 
+# 修正2：调整RK4参数顺序 (t在前)
 def rk4_step(ode_func: Callable, state: np.ndarray, t: float, dt: float, **kwargs) -> np.ndarray:
     """四阶龙格-库塔方法单步积分"""
-    k1 = dt * ode_func(state, t, **kwargs)
-    k2 = dt * ode_func(state + 0.5*k1, t + 0.5*dt, **kwargs)
-    k3 = dt * ode_func(state + 0.5*k2, t + 0.5*dt, **kwargs)
-    k4 = dt * ode_func(state + k3, t + dt, **kwargs)
+    k1 = dt * ode_func(t, state, **kwargs)  # 修正调用顺序
+    k2 = dt * ode_func(t + 0.5*dt, state + 0.5*k1, **kwargs)
+    k3 = dt * ode_func(t + 0.5*dt, state + 0.5*k2, **kwargs)
+    k4 = dt * ode_func(t + dt, state + k3, **kwargs)
     return state + (k1 + 2*k2 + 2*k3 + k4)/6
 
 def solve_ode(ode_func: Callable, initial_state: np.ndarray, t_span: Tuple[float, float], 
@@ -23,8 +25,8 @@ def solve_ode(ode_func: Callable, initial_state: np.ndarray, t_span: Tuple[float
     t_start, t_end = t_span
     t_values = np.arange(t_start, t_end + dt, dt)
     states = [initial_state.copy()]
-    for t in t_values[:-1]:
-        new_state = rk4_step(ode_func, states[-1], t, dt, **kwargs)
+    for i in range(len(t_values)-1):
+        new_state = rk4_step(ode_func, states[-1], t_values[i], dt, **kwargs)
         states.append(new_state)
     return t_values, np.array(states)
 
@@ -56,20 +58,24 @@ def calculate_energy(state: np.ndarray, omega: float = 1.0) -> float:
     x, v = state
     return 0.5 * v**2 + 0.5 * omega**2 * x**2
 
-def analyze_limit_cycle(states: np.ndarray, t: np.ndarray) -> Tuple[float, float]:
-    """分析极限环特征"""
+def analyze_limit_cycle(states: np.ndarray) -> Tuple[float, float]:
+    """分析极限环特征 (返回振幅和周期步数)"""
     x = states[:, 0]
     # 振幅：取稳态部分的最大绝对值
-    amplitude = np.max(np.abs(x[-1000:])) if len(x) > 1000 else np.max(np.abs(x))
+    steady_state = x[-1000:] if len(x) > 1000 else x
+    amplitude = np.max(np.abs(steady_state))
     
-    # 周期：通过过零点计算
+    # 周期：通过过零点计算周期步数 (返回步数而非实际时间)
     zero_crossings = np.where(np.diff(np.sign(x)))[0]
-    if len(zero_crossings) > 1:
-        periods = np.diff(t[zero_crossings])
-        period = np.mean(periods) * 2  # 两个过零点为一个周期
+    if len(zero_crossings) > 2:
+        # 计算相邻过零点之间的步数 (半个周期)
+        half_period_steps = np.diff(zero_crossings)
+        # 完整周期步数 = 2 * 半周期步数
+        period_steps = 2 * np.mean(half_period_steps)
     else:
-        period = np.nan
-    return amplitude, period
+        period_steps = np.nan
+        
+    return amplitude, period_steps
 
 def main():
     # 基本参数设置
