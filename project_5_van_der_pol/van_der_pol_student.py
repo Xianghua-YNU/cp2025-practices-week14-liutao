@@ -58,25 +58,17 @@ def calculate_energy(state: np.ndarray, omega: float = 1.0) -> float:
 
 def analyze_limit_cycle(states: np.ndarray, t: np.ndarray) -> Tuple[float, float]:
     """分析极限环特征"""
-    # 跳过初始瞬态
-    skip = int(len(states)*0.5)
-    x = states[skip:, 0]
-    t = np.arange(len(x))
+    x = states[:, 0]
+    # 振幅：取稳态部分的最大绝对值
+    amplitude = np.max(np.abs(x[-1000:])) if len(x) > 1000 else np.max(np.abs(x))
     
-    # 计算振幅（取最大值的平均）
-    peaks = []
-    for i in range(1, len(x)-1):
-        if x[i] > x[i-1] and x[i] > x[i+1]:
-            peaks.append(x[i])
-    amplitude = np.mean(peaks) if peaks else np.nan
-    
-    # 计算周期（取相邻峰值点的时间间隔平均）
-    if len(peaks) >= 2:
-        periods = np.diff(t[1:-1][np.array([x[i] > x[i-1] and x[i] > x[i+1] for i in range(1, len(x)-1)])])
-        period = np.mean(periods) if len(periods) > 0 else np.nan
+    # 周期：通过过零点计算
+    zero_crossings = np.where(np.diff(np.sign(x)))[0]
+    if len(zero_crossings) > 1:
+        periods = np.diff(t[zero_crossings])
+        period = np.mean(periods) * 2  # 两个过零点为一个周期
     else:
         period = np.nan
-    
     return amplitude, period
 
 def main():
@@ -87,7 +79,7 @@ def main():
         'dt': 0.01,
         'initial_state': np.array([1.0, 0.0])
     }
-
+    
     # 任务1：基本实现 (μ=1)
     print("Running basic simulation (μ=1)...")
     t, states = solve_ode(van_der_pol_ode, **params, mu=1.0)
@@ -105,9 +97,8 @@ def main():
         
         # 相空间图
         plot_phase_space(states, f'Phase Space (μ={mu})')
-
-    # 任务3：能量分析（保持原有实现）
-    # [...] （其余代码保持不变）
+    
+    # 任务3：能量分析
     print("\nAnalyzing energy evolution...")
     plt.figure(figsize=(10, 5))
     energies = np.array([calculate_energy(state) for state in states])
