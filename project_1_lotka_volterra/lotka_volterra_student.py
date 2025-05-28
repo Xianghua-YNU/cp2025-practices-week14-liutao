@@ -10,14 +10,15 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import Tuple, List
+from typing import Tuple
 
 # 设置中文字体（可选）
 plt.rcParams['font.sans-serif'] = ['SimHei', 'Arial Unicode MS']
 plt.rcParams['axes.unicode_minus'] = False
 
 
-def lotka_volterra_system(state: np.ndarray, t: float, alpha: float, beta: float,
+def lotka_volterra_system(state: np.ndarray, t: float, alpha: float,
+                          beta: float,
                           gamma: float, delta: float) -> np.ndarray:
     """
     Lotka-Volterra方程组的右端函数
@@ -143,7 +144,8 @@ def runge_kutta_4(f, y0: np.ndarray, t_span: Tuple[float, float],
 
 def solve_lotka_volterra(alpha: float, beta: float, gamma: float, delta: float,
                          x0: float, y0: float, t_span: Tuple[float, float],
-                         dt: float) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+                         dt: float) -> Tuple[np.ndarray,
+                                             np.ndarray, np.ndarray]:
     """
     使用4阶龙格-库塔法求解Lotka-Volterra方程组
 
@@ -210,7 +212,8 @@ def compare_methods(alpha: float, beta: float, gamma: float, delta: float,
 
     results = {
         'euler': {'t': t_euler, 'x': x_euler, 'y': y_pred_euler},
-        'improved_euler': {'t': t_improved_euler, 'x': x_improved_euler, 'y': y_pred_improved_euler},
+        'improved_euler': {'t': t_improved_euler, 'x': x_improved_euler,
+                           'y': y_pred_improved_euler},
         'rk4': {'t': t_rk4, 'x': x_rk4, 'y': y_pred_rk4}
     }
 
