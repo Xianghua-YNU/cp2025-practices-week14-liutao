@@ -2,10 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import Tuple, Callable, List
 
-import numpy as np
-import matplotlib.pyplot as plt
-from typing import Tuple, Callable, List
-
 def harmonic_oscillator_ode(state, t, omega=1.0):
     """简谐振子的一阶微分方程组。"""
     x, v = state
