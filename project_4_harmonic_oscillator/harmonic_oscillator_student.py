@@ -15,10 +15,9 @@ def harmonic_oscillator_ode(state: np.ndarray, t: float, omega: float = 1.0) -> 
         np.ndarray: 形状为(2,)的数组，包含dx/dt和dv/dt
     """
     x, v = state
-    # TODO: 实现简谐振子的微分方程组
-    # dx/dt = v
-    # dv/dt = -omega^2 * x
-    raise NotImplementedError("请实现简谐振子的微分方程组")
+    dxdt = v
+    dvdt = -omega**2 * x
+    return np.array([dxdt, dvdt])
 
 def anharmonic_oscillator_ode(state: np.ndarray, t: float, omega: float = 1.0) -> np.ndarray:
     """
@@ -33,10 +32,9 @@ def anharmonic_oscillator_ode(state: np.ndarray, t: float, omega: float = 1.0) -
         np.ndarray: 形状为(2,)的数组，包含dx/dt和dv/dt
     """
     x, v = state
-    # TODO: 实现非谐振子的微分方程组
-    # dx/dt = v
-    # dv/dt = -omega^2 * x^3
-    raise NotImplementedError("请实现非谐振子的微分方程组")
+    dxdt = v
+    dvdt = -omega**2 * x**3
+    return np.array([dxdt, dvdt])
 
 def rk4_step(ode_func: Callable, state: np.ndarray, t: float, dt: float, **kwargs) -> np.ndarray:
     """
@@ -52,8 +50,13 @@ def rk4_step(ode_func: Callable, state: np.ndarray, t: float, dt: float, **kwarg
     返回:
         np.ndarray: 下一步的状态
     """
-    # TODO: 实现RK4方法
-    raise NotImplementedError("请实现RK4方法")
+    k1 = dt * ode_func(state, t, **kwargs)
+    k2 = dt * ode_func(state + 0.5*k1, t + 0.5*dt, **kwargs)
+    k3 = dt * ode_func(state + 0.5*k2, t + 0.5*dt, **kwargs)
+    k4 = dt * ode_func(state + k3, t + dt, **kwargs)
+    
+    new_state = state + (k1 + 2*k2 + 2*k3 + k4) / 6
+    return new_state
 
 def solve_ode(ode_func: Callable, initial_state: np.ndarray, t_span: Tuple[float, float], 
               dt: float, **kwargs) -> Tuple[np.ndarray, np.ndarray]:
@@ -70,8 +73,16 @@ def solve_ode(ode_func: Callable, initial_state: np.ndarray, t_span: Tuple[float
     返回:
         Tuple[np.ndarray, np.ndarray]: (时间点数组, 状态数组)
     """
-    # TODO: 实现ODE求解器
-    raise NotImplementedError("请实现ODE求解器")
+    t_start, t_end = t_span
+    num_steps = int((t_end - t_start) / dt) + 1
+    t_array = np.linspace(t_start, t_end, num_steps)
+    state_array = np.zeros((num_steps, len(initial_state)))
+    state_array[0] = initial_state
+    
+    for i in range(1, num_steps):
+        state_array[i] = rk4_step(ode_func, state_array[i-1], t_array[i-1], dt, **kwargs)
+    
+    return t_array, state_array
 
 def plot_time_evolution(t: np.ndarray, states: np.ndarray, title: str) -> None:
     """
@@ -82,8 +93,15 @@ def plot_time_evolution(t: np.ndarray, states: np.ndarray, title: str) -> None:
         states: np.ndarray, 状态数组
         title: str, 图标题
     """
-    # TODO: 实现时间演化图的绘制
-    raise NotImplementedError("请实现时间演化图的绘制")
+    plt.figure(figsize=(10, 6))
+    plt.plot(t, states[:, 0], label='位移 (x)')
+    plt.plot(t, states[:, 1], label='速度 (v)')
+    plt.xlabel('时间 (t)')
+    plt.ylabel('状态')
+    plt.title(title)
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
 def plot_phase_space(states: np.ndarray, title: str) -> None:
     """
@@ -93,8 +111,14 @@ def plot_phase_space(states: np.ndarray, title: str) -> None:
         states: np.ndarray, 状态数组
         title: str, 图标题
     """
-    # TODO: 实现相空间图的绘制
-    raise NotImplementedError("请实现相空间图的绘制")
+    plt.figure(figsize=(8, 8))
+    plt.plot(states[:, 0], states[:, 1])
+    plt.xlabel('位移 (x)')
+    plt.ylabel('速度 (v)')
+    plt.title(title)
+    plt.grid(True)
+    plt.axis('equal')
+    plt.show()
 
 def analyze_period(t: np.ndarray, states: np.ndarray) -> float:
     """
@@ -107,8 +131,26 @@ def analyze_period(t: np.ndarray, states: np.ndarray) -> float:
     返回:
         float: 估计的振动周期
     """
-    # TODO: 实现周期分析
-    raise NotImplementedError("请实现周期分析")
+    # 寻找位移过零点（由正变负）
+    zero_crossings = []
+    for i in range(1, len(states)):
+        if states[i-1, 0] >= 0 and states[i, 0] < 0:
+            # 线性插值得到精确的过零点时间
+            t0 = t[i-1]
+            t1 = t[i]
+            x0 = states[i-1, 0]
+            x1 = states[i, 0]
+            t_cross = t0 - x0 * (t1 - t0) / (x1 - x0)
+            zero_crossings.append(t_cross)
+    
+    # 计算相邻过零点的时间差（半周期）
+    if len(zero_crossings) < 2:
+        return None
+    
+    half_periods = np.diff(zero_crossings)
+    # 取平均值并乘以2得到完整周期
+    period = 2 * np.mean(half_periods)
+    return period
 
 def main():
     # 设置参数
@@ -116,22 +158,56 @@ def main():
     t_span = (0, 50)
     dt = 0.01
     
-    # TODO: 任务1 - 简谐振子的数值求解
-    # 1. 设置初始条件 x(0)=1, v(0)=0
-    # 2. 求解方程
-    # 3. 绘制时间演化图
+    # 任务1: 简谐振子的数值求解 (初始条件 x(0)=1, v(0)=0)
+    initial_state = np.array([1.0, 0.0])
+    t_harmonic, states_harmonic = solve_ode(harmonic_oscillator_ode, initial_state, t_span, dt, omega=omega)
+    plot_time_evolution(t_harmonic, states_harmonic, "简谐振子: 时间演化 (x(0)=1, v(0)=0)")
     
-    # TODO: 任务2 - 振幅对周期的影响分析
-    # 1. 使用不同的初始振幅
-    # 2. 分析周期变化
+    # 任务2: 振幅对周期的影响分析 (简谐振子)
+    amplitudes = [1.0, 2.0, 3.0]
+    harmonic_periods = []
     
-    # TODO: 任务3 - 非谐振子的数值分析
-    # 1. 求解非谐振子方程
-    # 2. 分析不同振幅的影响
+    for amp in amplitudes:
+        initial_state = np.array([amp, 0.0])
+        t, states = solve_ode(harmonic_oscillator_ode, initial_state, t_span, dt, omega=omega)
+        period = analyze_period(t, states)
+        harmonic_periods.append(period)
+        print(f"简谐振子: 初始振幅={amp}, 周期={period:.4f} (理论值={2*np.pi/omega:.4f})")
     
-    # TODO: 任务4 - 相空间分析
-    # 1. 绘制相空间轨迹
-    # 2. 比较简谐和非谐振子
+    # 任务3: 非谐振子的数值分析
+    anharmonic_periods = []
+    
+    for amp in amplitudes:
+        initial_state = np.array([amp, 0.0])
+        t_anharmonic, states_anharmonic = solve_ode(anharmonic_oscillator_ode, initial_state, t_span, dt, omega=omega)
+        period = analyze_period(t_anharmonic, states_anharmonic)
+        anharmonic_periods.append(period)
+        print(f"非谐振子: 初始振幅={amp}, 周期={period:.4f}")
+        
+        if amp == 1.0 or amp == 2.0:
+            plot_time_evolution(t_anharmonic, states_anharmonic, f"非谐振子: 时间演化 (x(0)={amp}, v(0)=0)")
+    
+    # 任务4: 相空间分析
+    # 简谐振子 (振幅=1)
+    initial_state = np.array([1.0, 0.0])
+    _, states_harmonic = solve_ode(harmonic_oscillator_ode, initial_state, t_span, dt, omega=omega)
+    plot_phase_space(states_harmonic, "简谐振子: 相空间轨迹 (x(0)=1, v(0)=0)")
+    
+    # 非谐振子 (振幅=1)
+    _, states_anharmonic = solve_ode(anharmonic_oscillator_ode, initial_state, t_span, dt, omega=omega)
+    plot_phase_space(states_anharmonic, "非谐振子: 相空间轨迹 (x(0)=1, v(0)=0)")
+    
+    # 绘制振幅对周期的影响
+    plt.figure(figsize=(10, 6))
+    plt.plot(amplitudes, harmonic_periods, 'o-', label='简谐振子')
+    plt.plot(amplitudes, anharmonic_periods, 's-', label='非谐振子')
+    plt.axhline(y=2*np.pi/omega, color='r', linestyle='--', label='理论周期 (简谐)')
+    plt.xlabel('初始振幅')
+    plt.ylabel('振动周期')
+    plt.title('振幅对振动周期的影响')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
 if __name__ == "__main__":
     main()
